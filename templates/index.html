@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Draw num</title>
+</head>
+<body>
+<canvas class='number'>
+</canvas>
+<div class='recognition' onClick={send()}>
+    Распознать
+</div>
+<h1 id="win"></h1>
+<script>
+
+  let WIDTH_IMAGE = 28;
+  let HEIGHT_IMAGE = 28;
+  let SCALE = 10;
+
+  let canvas = document.getElementsByClassName('number')[0];
+  let ctx = canvas.getContext('2d');
+  ctx.canvas.width  = WIDTH_IMAGE * SCALE;
+  ctx.canvas.height = HEIGHT_IMAGE * SCALE
+
+  let state = {
+    mousedown: false,
+    mouseup: true,
+    image: {
+      data: [],
+      value: 0
+    }
+  };
+
+  function reset() {
+      state.image.data = [];
+      for (let i = 0; i < HEIGHT_IMAGE; i += 1) {
+        state.image.data[i] = [];
+        for (let j = 0; j < WIDTH_IMAGE; j += 1) {
+          state.image.data[i][j] = 0;
+        }
+      }
+      state.image.value = 0;
+  }
+
+  reset();
+
+  function rendCanvas() {
+    let canvas = document.getElementsByClassName('number')[0];
+    let ctx = canvas.getContext('2d');
+    ctx.fillStyle='white';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle='black';
+    ctx.fillStyle='black';
+    let data = state.image.data;
+
+    for (let i = 0; i < HEIGHT_IMAGE; i += 1) {
+      for (let j = 0; j < WIDTH_IMAGE; j += 1) {
+        ctx.strokeRect(j * SCALE, i * SCALE, SCALE, SCALE);
+        if (data[i][j] > 0) {
+          let color = parseInt(255 - 255 * data[i][j]);
+          ctx.fillStyle = 'rgb(' + color + ',' + color + ',' + color + ')';
+          ctx.fillRect(j * SCALE, i * SCALE, SCALE, SCALE)
+        }
+      }
+    }
+  }
+
+  function setDataPos(pos, value) {
+    if (state.image.data[pos.y][pos.x] < value) {
+      state.image.data[pos.y][pos.x] = value;
+    }
+  }
+
+  canvas.addEventListener('mousedown', function (e) {
+    console.log('down');
+    e.preventDefault();
+    state.mousedown = true;
+    state.mouseup = false;
+    if (e.ctrlKey === true) {
+      reset();
+    }
+    self.rendCanvas();
+  });
+  canvas.addEventListener('mouseup', function (e) {
+    console.log('down');
+    e.preventDefault();
+    state.mousedown = false;
+    state.mouseup = true;
+    rendCanvas();
+  });
+  canvas.addEventListener('mousemove', function (e) {
+    e.preventDefault();
+    if (state.mousedown === true) {
+      console.log('press');
+      e.preventDefault();
+      let pos = {
+        x: Math.floor((e.clientX - e.target.offsetLeft + window.pageXOffset) / SCALE),
+        y: Math.floor((e.clientY - e.target.offsetTop + window.pageYOffset) / SCALE)
+      };
+      // console.log(pos);
+      setDataPos(pos, 1);
+      console.log(pos);
+      if (pos.x - 1 > -1) {
+        pos.x -= 1;
+        setDataPos(pos, 1 - Math.random() / 3);
+        pos.x += 1;
+      }
+      if (pos.y - 1 > -1) {
+        pos.y -= 1;
+        setDataPos(pos, 1 - Math.random() / 3);
+        pos.y += 1;
+      }
+      if (pos.x + 1 < WIDTH_IMAGE) {
+        pos.x += 1;
+        setDataPos(pos, 1 - Math.random() / 3)
+        pos.x -= 1;
+      }
+      if (pos.y + 1 < HEIGHT_IMAGE) {
+        pos.y += 1;
+        setDataPos(pos, 1 - Math.random() / 3);
+      }
+
+      rendCanvas();
+    }
+  });
+  canvas.addEventListener('contextmenu', function (e) {
+    e.preventDefault();
+    let pos = {
+      x: Math.floor((e.clientX - e.target.offsetLeft + window.pageXOffset) / SCALE),
+      y: Math.floor((e.clientY - e.target.offsetTop + window.pageYOffset) / SCALE)
+    };
+    // console.log(pos);
+    setDataPos(pos, 0);
+    rendCanvas();
+  });
+
+  rendCanvas();
+
+
+  function send() {
+    let API_URL = 'http://localhost:5000/test_one';
+    let data = {
+      data: state.image.data
+    };
+    let d = JSON.stringify(data);
+    let headers = {
+      'Content-type': 'application/json'
+    };
+    fetch(API_URL, {
+      method: 'POST',
+      body: d,
+      headers: headers
+    })
+      .then(function (response) {
+        console.log(response);
+        if (response.status !== 200) {
+          return false;
+        }
+        return response.json();
+      })
+      .then((data) => {
+          const win = document.getElementById("win");
+          win.innerHTML = data['result'];
+      })
+      .catch(function (error) {
+        console.log('Request failed', error);
+        return false;
+      })
+  }
+</script>
+</body>
+</html>

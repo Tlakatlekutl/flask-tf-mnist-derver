@@ -6,6 +6,9 @@ Run code by this command:
 $ FLASK_APP=app.py flask run
 ```
 Verify what Flask already inslalled
+```sh
+$ pip3 install flask
+```
 
 For debugging logs and autocodereload you can use 'Debug mode':
 ```sh

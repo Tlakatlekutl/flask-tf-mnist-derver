@@ -5,12 +5,95 @@
     <title>Draw num</title>
 </head>
 <body>
-<canvas class='number'>
-</canvas>
-<div class='recognition' onClick={send()}>
-    Распознать
+<style>
+    @import url('https://fonts.googleapis.com/css?family=Roboto+Condensed');
+    @import url('https://fonts.googleapis.com/css?family=Lobster|Roboto+Condensed');
+    
+    .name {
+      font-family: 'Lobster', cursive;
+      height: 70px;
+      font-size: 56px;
+      text-align: center;
+      margin-top: 25px;
+      margin-bottom: 50px;
+    }
+    
+    body {background: url(https://html5book.ru/wp-content/uploads/2015/07/background39.png);}
+    .link {
+      text-decoration: none;
+      outline: none;
+      display: inline-block;
+      width: 170px;
+      height: 45px;
+      line-height: 45px;
+      border-radius: 45px;
+      margin: 10px 8px;
+      font-family: 'Roboto Condensed', sans-serif;
+      font-size: 16px;
+      text-transform: uppercase;
+      text-align: center;
+      letter-spacing: 1px;
+      font-weight: 600;
+      color: #524f4e;
+      background: white;
+      box-shadow: 0 8px 15px rgba(0,0,0,.1);
+      transition: .3s;
+    }
+    
+    .link:hover {
+      background: #2EE59D;
+      box-shadow: 0 15px 20px rgba(46,229,157,.4);
+      color: white;
+      transform: translateY(-7px);
+    }
+    
+    .actions-rec {
+      width: 300px;
+      display: block;
+      margin: auto;
+      margin-bottom: 10px;
+    }
+
+    .actions-rec .link {
+      width: 130px;
+    }
+
+    .answer {
+      width: 200px;
+      font-size: 36px;
+      margin: auto;
+    }
+
+    .number {
+      display: block;
+      margin: auto;
+      border-style: black double;
+      margin-bottom: 30px;
+    }
+
+</style>
+
+<div class='name'>
+  Распознавание чисел
 </div>
-<h1 id="win"></h1>
+<div class='recognition'>
+    <div class='createSample'>
+      <canvas class='number'>
+      </canvas>
+    </div>
+    <div class='actions-rec'>
+        <div class='clear link' onClick={reset()}>
+          Стереть
+        </div>
+        <div class='recognition link' onClick={send()}>
+          Распознать
+        </div>
+      </div>
+    <div class='answer'>
+
+    </div>
+</div>
+
 <script>
 
   let WIDTH_IMAGE = 28;
@@ -32,14 +115,15 @@
   };
 
   function reset() {
-      state.image.data = [];
-      for (let i = 0; i < HEIGHT_IMAGE; i += 1) {
-        state.image.data[i] = [];
-        for (let j = 0; j < WIDTH_IMAGE; j += 1) {
-          state.image.data[i][j] = 0;
-        }
+    state.image.data = [];
+    for (let i = 0; i < HEIGHT_IMAGE; i += 1) {
+      state.image.data[i] = [];
+      for (let j = 0; j < WIDTH_IMAGE; j += 1) {
+        state.image.data[i][j] = 0;
       }
-      state.image.value = 0;
+    }
+    state.image.value = 0;
+    rendCanvas();
   }
 
   reset();
@@ -73,7 +157,6 @@
   }
 
   canvas.addEventListener('mousedown', function (e) {
-    console.log('down');
     e.preventDefault();
     state.mousedown = true;
     state.mouseup = false;
@@ -83,7 +166,6 @@
     self.rendCanvas();
   });
   canvas.addEventListener('mouseup', function (e) {
-    console.log('down');
     e.preventDefault();
     state.mousedown = false;
     state.mouseup = true;
@@ -92,15 +174,12 @@
   canvas.addEventListener('mousemove', function (e) {
     e.preventDefault();
     if (state.mousedown === true) {
-      console.log('press');
       e.preventDefault();
       let pos = {
         x: Math.floor((e.clientX - e.target.offsetLeft + window.pageXOffset) / SCALE),
         y: Math.floor((e.clientY - e.target.offsetTop + window.pageYOffset) / SCALE)
       };
-      // console.log(pos);
       setDataPos(pos, 1);
-      console.log(pos);
       if (pos.x - 1 > -1) {
         pos.x -= 1;
         setDataPos(pos, 1 - Math.random() / 3);
@@ -137,7 +216,6 @@
 
   rendCanvas();
 
-
   function send() {
     let API_URL = 'http://localhost:5000/test_one';
     let data = {
@@ -147,6 +225,8 @@
     let headers = {
       'Content-type': 'application/json'
     };
+    reset();
+    rendCanvas();
     fetch(API_URL, {
       method: 'POST',
       body: d,
@@ -160,8 +240,8 @@
         return response.json();
       })
       .then((data) => {
-          const win = document.getElementById("win");
-          win.innerHTML = data['result'];
+          const win = document.getElementsByClassName('answer')[0];
+          win.innerHTML = 'Ответ: ' + data['result'];
       })
       .catch(function (error) {
         console.log('Request failed', error);

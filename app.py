@@ -2,13 +2,7 @@ from flask import Flask, request, render_template
 from flask import jsonify
 
 import tensorflow as tf
-import argparse
-import sys
 import numpy as np
-from random import randint
-from tensorflow.examples.tutorials.mnist import input_data
-from matplotlib import pyplot as plt
-from PIL import Image, ImageOps
 
 FLAGS = None
 
